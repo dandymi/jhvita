@@ -41,6 +41,7 @@ public class CacheConfiguration {
             cm.createCache(it.maraschi.jhvita.domain.Authority.class.getName(), jcacheConfiguration);
             cm.createCache(it.maraschi.jhvita.domain.User.class.getName() + ".authorities", jcacheConfiguration);
             cm.createCache(it.maraschi.jhvita.domain.SocialUserConnection.class.getName(), jcacheConfiguration);
+            cm.createCache(it.maraschi.jhvita.domain.Cliente.class.getName(), jcacheConfiguration);
             // jhipster-needle-ehcache-add-entry
         };
     }
