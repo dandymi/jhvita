@@ -1,0 +1,232 @@
+
+entity Actor {
+	codAnagr String required minlength(3),
+    codClienteConosc String,
+    codDocumento String,
+    codEnteRilascioDoc String,
+    codFiscale String,
+    codGruppo String,
+    codNdg String,
+    codNucleo String,
+    codPIva String,
+    codPotenzialita String,
+    codProfessione String,
+    codProvenienza String,
+    codProvinciaDoc String,
+    codProvinciaNasc String,
+    codRamoAttivita String,
+    codSottogruppo String,
+    codStatoDoc String,
+    codStatoCivile String,
+    codStatoCliente String,
+    codStileVita String,
+    codTitOnorario String,
+    codTitoloStudio String,
+    desCognome String,
+    desCognome1 String,
+    desComuneNasc String,
+    desComuneRilascioDoc String,
+    desNazioneNasc String,
+    desNome String,
+    desNumeroDoc String,
+    desSecondNome String,
+    dataCreazione ZonedDateTime,
+    dataDecesso ZonedDateTime,
+    dataNascita ZonedDateTime,
+    dataPrivacy1 ZonedDateTime,
+    dataPrivacy2 ZonedDateTime,
+    dataPrivacy3 ZonedDateTime,
+    dataRilascioDoc ZonedDateTime,
+    dataRinnovoDoc ZonedDateTime,
+    dataScadenzaDoc ZonedDateTime,
+    dataValidita ZonedDateTime,
+    dataVariazione ZonedDateTime,
+    flagCodFiscErrato String,
+    flagPersona String,
+    flagPrivacy1 String,
+    flagPrivacy2 String,
+    flagPrivacy3 String,
+    flagResidente String,
+    flagSesso String,
+    numFamiliari BigDecimal,
+    numFigli BigDecimal,
+    numMatricola String,
+    tipoCategPatente String,
+    handle String required minlength(2)
+}
+
+entity Cliente {
+	codCliente String required,
+    codFiscale String,
+    codPiva String,
+    codProvinciaNasc String,
+    desCognome String,
+    desCognome1 String,
+    desComuneNasc String,
+    desNazioneNasc String,
+    desNome String,
+    desSecnome String,
+    dtaCreazione ZonedDateTime,
+    dtaNascita LocalDate,
+    flgCfErrato String,
+    flgPersona String,
+    flgSesso String,
+    codLingua String,
+    proclie String,
+    ac_version Integer,
+    ac_dta_version ZonedDateTime,
+    dtaDecesso LocalDate,
+    codMotDecesso String
+}
+
+entity ClientePrivacy {
+	codCliente String required,
+    tipoSoggetto String required,
+    codDomanda String required,
+    risDomanda String,
+    ris2_domanda String,
+    dta_creazione ZonedDateTime,
+    flag_inviato String
+}
+
+entity ClientePrivacyStor {
+	codCliente String required,
+    tipoSoggetto String required,
+    codDomanda String required,
+    dataInizio LocalDate,
+    risDomanda String,
+    ris2_domanda String,
+    dta_creazione ZonedDateTime,
+    dataFine ZonedDateTime,
+    codUtente String
+}
+
+entity Tag {
+	name String required minlength(2)
+	content TextBlob required,
+	date ZonedDateTime required
+}
+
+relationship ManyToOne {
+	Blog{user(login)} to User,
+	Entry{blog(name)} to Blog
+}
+
+relationship ManyToMany {
+	Entry{tag(name)} to Tag{entry}
+}
+
+paginate Entry, Tag with infinite-scroll
+
+entity Region {
+	regionName String
+}
+
+entity Country {
+	countryName String
+}
+
+// an ignored comment
+/** not an ignored comment */
+entity Location {
+	streetAddress String,
+	postalCode String,
+	city String,
+	stateProvince String
+}
+
+entity Department {
+	departmentName String required
+}
+
+/**
+ * Task entity.
+ * @author The JHipster team.
+ */
+entity Task {
+	title String,
+	description String
+}
+
+/**
+ * The Employee entity.
+ */
+entity Employee {
+	/**
+	* The firstname attribute.
+	*/
+	firstName String,
+	lastName String,
+	email String,
+	phoneNumber String,
+	hireDate ZonedDateTime,
+	salary Long,
+	commissionPct Long
+}
+
+entity Job {
+	jobTitle String,
+	minSalary Long,
+	maxSalary Long
+}
+
+entity JobHistory {
+	startDate ZonedDateTime,
+	endDate ZonedDateTime,
+	language Language
+}
+
+enum Language {
+    FRENCH, ENGLISH, SPANISH
+}
+
+relationship OneToOne {
+	Country{region} to Region
+}
+
+relationship OneToOne {
+	Location{country} to Country
+}
+
+relationship OneToOne {
+	Department{location} to Location
+}
+
+relationship ManyToMany {
+	Job{task(title)} to Task{job}
+}
+
+// defining multiple OneToMany relationships with comments
+relationship OneToMany {
+	Employee{job} to Job,
+	/**
+	* A relationship
+	*/
+	Department{employee} to
+	/**
+	* Another side of the same relationship
+	*/
+	Employee
+}
+
+relationship ManyToOne {
+	Employee{manager} to Employee
+}
+
+// defining multiple oneToOne relationships
+relationship OneToOne {
+	JobHistory{job} to Job,
+	JobHistory{department} to Department,
+	JobHistory{employee} to Employee
+}
+
+// Set pagination options
+paginate JobHistory, Employee with infinite-scroll
+paginate Job with pagination
+
+dto * with mapstruct
+
+// Set service options to all except few
+service all with serviceImpl except Employee, Job
+// Set an angular suffix
+angularSuffix * with mySuffix
