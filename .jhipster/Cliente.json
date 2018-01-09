@@ -1,0 +1,32 @@
+{
+    "fluentMethods": true,
+    "relationships": [],
+    "fields": [
+        {
+            "fieldName": "codCliente",
+            "fieldType": "BigDecimal"
+        },
+        {
+            "fieldName": "ragioneSociale",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required",
+                "minlength",
+                "maxlength",
+                "pattern"
+            ],
+            "fieldValidateRulesMinlength": 0,
+            "fieldValidateRulesMaxlength": "100",
+            "fieldValidateRulesPattern": "^[a-zA-Z0-9]*$"
+        },
+        {
+            "fieldName": "partitaIVA",
+            "fieldType": "String"
+        }
+    ],
+    "changelogDate": "20170809131257",
+    "dto": "no",
+    "service": "serviceClass",
+    "entityTableName": "cliente",
+    "pagination": "pagination"
+}
