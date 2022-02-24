@@ -1,0 +1,24 @@
+{
+    "jhvitaApp": {
+        "cliente" : {
+            "home": {
+                "title": "Clientes",
+                "createLabel": "Creeare o nouă entitate Cliente",
+                "createOrEditLabel": "Creeare sau editare Cliente",
+                "search": "Căutare după Cliente"
+            },
+            "created": "A fost creată o nouă entitate Cliente cu identificatorul {{ param }}",
+            "updated": "Cliente cu identificatorul {{ param }} a fost actualizată",
+            "deleted": "Cliente cu identificatorul {{ param }} a fost ștearsă",
+            "delete": {
+                "question": "Sunteți sigur că doriți să ștergeți Cliente {{ id }}?"
+            },
+            "detail": {
+                "title": "Cliente"
+            },
+            "codCliente": "Cod Cliente",
+            "ragioneSociale": "Ragione Sociale",
+            "partitaIVA": "Partita IVA"
+        }
+    }
+}
