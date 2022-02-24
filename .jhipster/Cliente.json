@@ -1,32 +1,28 @@
 {
-    "fluentMethods": true,
-    "relationships": [],
-    "fields": [
-        {
-            "fieldName": "codCliente",
-            "fieldType": "BigDecimal"
-        },
-        {
-            "fieldName": "ragioneSociale",
-            "fieldType": "String",
-            "fieldValidateRules": [
-                "required",
-                "minlength",
-                "maxlength",
-                "pattern"
-            ],
-            "fieldValidateRulesMinlength": 0,
-            "fieldValidateRulesMaxlength": "100",
-            "fieldValidateRulesPattern": "^[a-zA-Z0-9]*$"
-        },
-        {
-            "fieldName": "partitaIVA",
-            "fieldType": "String"
-        }
-    ],
-    "changelogDate": "20170809131257",
-    "dto": "no",
-    "service": "serviceClass",
-    "entityTableName": "cliente",
-    "pagination": "pagination"
+  "changelogDate": "20170809131257",
+  "dto": "no",
+  "entityTableName": "cliente",
+  "fields": [
+    {
+      "fieldName": "codCliente",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "ragioneSociale",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "minlength", "maxlength", "pattern"],
+      "fieldValidateRulesMaxlength": "100",
+      "fieldValidateRulesMinlength": 0,
+      "fieldValidateRulesPattern": "^[a-zA-Z0-9]*$"
+    },
+    {
+      "fieldName": "partitaIVA",
+      "fieldType": "String"
+    }
+  ],
+  "fluentMethods": true,
+  "name": "Cliente",
+  "pagination": "pagination",
+  "relationships": [],
+  "service": "serviceClass"
 }

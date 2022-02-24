@@ -1,33 +1,58 @@
-import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRouteSnapshot, NavigationEnd, RoutesRecognized } from '@angular/router';
+import { Component, OnInit, RendererFactory2, Renderer2 } from '@angular/core';
+import { Title } from '@angular/platform-browser';
+import { Router, ActivatedRouteSnapshot, NavigationEnd } from '@angular/router';
+import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
+import dayjs from 'dayjs/esm';
 
-import { JhiLanguageHelper, StateStorageService } from '../../shared';
+import { AccountService } from 'app/core/auth/account.service';
 
 @Component({
-    selector: 'jhi-main',
-    templateUrl: './main.component.html'
+  selector: 'jhi-main',
+  templateUrl: './main.component.html',
 })
-export class JhiMainComponent implements OnInit {
+export class MainComponent implements OnInit {
+  private renderer: Renderer2;
 
-    constructor(
-        private jhiLanguageHelper: JhiLanguageHelper,
-        private router: Router,
-        private $storageService: StateStorageService,
-    ) {}
+  constructor(
+    private accountService: AccountService,
+    private titleService: Title,
+    private router: Router,
+    private translateService: TranslateService,
+    rootRenderer: RendererFactory2
+  ) {
+    this.renderer = rootRenderer.createRenderer(document.querySelector('html'), null);
+  }
 
-    private getPageTitle(routeSnapshot: ActivatedRouteSnapshot) {
-        let title: string = (routeSnapshot.data && routeSnapshot.data['pageTitle']) ? routeSnapshot.data['pageTitle'] : 'jhvitaApp';
-        if (routeSnapshot.firstChild) {
-            title = this.getPageTitle(routeSnapshot.firstChild) || title;
-        }
-        return title;
+  ngOnInit(): void {
+    // try to log in automatically
+    this.accountService.identity().subscribe();
+
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        this.updateTitle();
+      }
+    });
+
+    this.translateService.onLangChange.subscribe((langChangeEvent: LangChangeEvent) => {
+      this.updateTitle();
+      dayjs.locale(langChangeEvent.lang);
+      this.renderer.setAttribute(document.querySelector('html'), 'lang', langChangeEvent.lang);
+    });
+  }
+
+  private getPageTitle(routeSnapshot: ActivatedRouteSnapshot): string {
+    const title: string = routeSnapshot.data['pageTitle'] ?? '';
+    if (routeSnapshot.firstChild) {
+      return this.getPageTitle(routeSnapshot.firstChild) || title;
     }
+    return title;
+  }
 
-    ngOnInit() {
-        this.router.events.subscribe((event) => {
-            if (event instanceof NavigationEnd) {
-                this.jhiLanguageHelper.updateTitle(this.getPageTitle(this.router.routerState.snapshot.root));
-            }
-        });
+  private updateTitle(): void {
+    let pageTitle = this.getPageTitle(this.router.routerState.snapshot.root);
+    if (!pageTitle) {
+      pageTitle = 'global.title';
     }
+    this.translateService.get(pageTitle).subscribe(title => this.titleService.setTitle(title));
+  }
 }

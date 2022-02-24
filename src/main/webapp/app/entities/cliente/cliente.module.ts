@@ -1,51 +1,14 @@
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { RouterModule } from '@angular/router';
-
-import { JhvitaSharedModule } from '../../shared';
-import {
-    ClienteService,
-    ClientePopupService,
-    ClienteComponent,
-    ClienteDetailComponent,
-    ClienteDialogComponent,
-    ClientePopupComponent,
-    ClienteDeletePopupComponent,
-    ClienteDeleteDialogComponent,
-    clienteRoute,
-    clientePopupRoute,
-    ClienteResolvePagingParams,
-} from './';
-
-const ENTITY_STATES = [
-    ...clienteRoute,
-    ...clientePopupRoute,
-];
+import { NgModule } from '@angular/core';
+import { SharedModule } from 'app/shared/shared.module';
+import { ClienteComponent } from './list/cliente.component';
+import { ClienteDetailComponent } from './detail/cliente-detail.component';
+import { ClienteUpdateComponent } from './update/cliente-update.component';
+import { ClienteDeleteDialogComponent } from './delete/cliente-delete-dialog.component';
+import { ClienteRoutingModule } from './route/cliente-routing.module';
 
 @NgModule({
-    imports: [
-        JhvitaSharedModule,
-        RouterModule.forRoot(ENTITY_STATES, { useHash: true })
-    ],
-    declarations: [
-        ClienteComponent,
-        ClienteDetailComponent,
-        ClienteDialogComponent,
-        ClienteDeleteDialogComponent,
-        ClientePopupComponent,
-        ClienteDeletePopupComponent,
-    ],
-    entryComponents: [
-        ClienteComponent,
-        ClienteDialogComponent,
-        ClientePopupComponent,
-        ClienteDeleteDialogComponent,
-        ClienteDeletePopupComponent,
-    ],
-    providers: [
-        ClienteService,
-        ClientePopupService,
-        ClienteResolvePagingParams,
-    ],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [SharedModule, ClienteRoutingModule],
+  declarations: [ClienteComponent, ClienteDetailComponent, ClienteUpdateComponent, ClienteDeleteDialogComponent],
+  entryComponents: [ClienteDeleteDialogComponent],
 })
-export class JhvitaClienteModule {}
+export class ClienteModule {}

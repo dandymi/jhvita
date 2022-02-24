@@ -1,26 +1,41 @@
 import { Injectable } from '@angular/core';
-import { Http, Response } from '@angular/http';
-import { Observable } from 'rxjs/Rx';
+import { HttpClient } from '@angular/common/http';
+import { map, shareReplay } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
-import { ProfileInfo } from './profile-info.model';
+import { ApplicationConfigService } from 'app/core/config/application-config.service';
+import { ProfileInfo, InfoResponse } from './profile-info.model';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class ProfileService {
+  private infoUrl = this.applicationConfigService.getEndpointFor('management/info');
+  private profileInfo$?: Observable<ProfileInfo>;
 
-    private profileInfoUrl = 'api/profile-info';
+  constructor(private http: HttpClient, private applicationConfigService: ApplicationConfigService) {}
 
-    constructor(private http: Http) { }
-
-    getProfileInfo(): Observable<ProfileInfo> {
-        return this.http.get(this.profileInfoUrl)
-            .map((res: Response) => {
-                const data = res.json();
-                const pi = new ProfileInfo();
-                pi.activeProfiles = data.activeProfiles;
-                pi.ribbonEnv = data.ribbonEnv;
-                pi.inProduction = data.activeProfiles.indexOf('prod') !== -1;
-                pi.swaggerEnabled = data.activeProfiles.indexOf('swagger') !== -1;
-                return pi;
-            });
+  getProfileInfo(): Observable<ProfileInfo> {
+    if (this.profileInfo$) {
+      return this.profileInfo$;
     }
+
+    this.profileInfo$ = this.http.get<InfoResponse>(this.infoUrl).pipe(
+      map((response: InfoResponse) => {
+        const profileInfo: ProfileInfo = {
+          activeProfiles: response.activeProfiles,
+          inProduction: response.activeProfiles?.includes('prod'),
+          openAPIEnabled: response.activeProfiles?.includes('api-docs'),
+        };
+        if (response.activeProfiles && response['display-ribbon-on-profiles']) {
+          const displayRibbonOnProfiles = response['display-ribbon-on-profiles'].split(',');
+          const ribbonProfiles = displayRibbonOnProfiles.filter(profile => response.activeProfiles?.includes(profile));
+          if (ribbonProfiles.length > 0) {
+            profileInfo.ribbonEnv = ribbonProfiles[0];
+          }
+        }
+        return profileInfo;
+      }),
+      shareReplay()
+    );
+    return this.profileInfo$;
+  }
 }

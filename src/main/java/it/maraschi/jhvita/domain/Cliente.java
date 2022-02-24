@@ -1,31 +1,29 @@
 package it.maraschi.jhvita.domain;
 
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.springframework.data.elasticsearch.annotations.Document;
-
-import javax.persistence.*;
-import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Objects;
+import javax.persistence.*;
+import javax.validation.constraints.*;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
  * A Cliente.
  */
 @Entity
 @Table(name = "cliente")
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-@Document(indexName = "cliente")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@org.springframework.data.elasticsearch.annotations.Document(indexName = "cliente")
 public class Cliente implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(name = "cod_cliente", precision=10, scale=2)
+    @Column(name = "cod_cliente", precision = 21, scale = 2)
     private BigDecimal codCliente;
 
     @NotNull
@@ -37,8 +35,15 @@ public class Cliente implements Serializable {
     @Column(name = "partita_iva")
     private String partitaIVA;
 
+    // jhipster-needle-entity-add-field - JHipster will add fields here
+
     public Long getId() {
-        return id;
+        return this.id;
+    }
+
+    public Cliente id(Long id) {
+        this.setId(id);
+        return this;
     }
 
     public void setId(Long id) {
@@ -46,11 +51,11 @@ public class Cliente implements Serializable {
     }
 
     public BigDecimal getCodCliente() {
-        return codCliente;
+        return this.codCliente;
     }
 
     public Cliente codCliente(BigDecimal codCliente) {
-        this.codCliente = codCliente;
+        this.setCodCliente(codCliente);
         return this;
     }
 
@@ -59,11 +64,11 @@ public class Cliente implements Serializable {
     }
 
     public String getRagioneSociale() {
-        return ragioneSociale;
+        return this.ragioneSociale;
     }
 
     public Cliente ragioneSociale(String ragioneSociale) {
-        this.ragioneSociale = ragioneSociale;
+        this.setRagioneSociale(ragioneSociale);
         return this;
     }
 
@@ -72,11 +77,11 @@ public class Cliente implements Serializable {
     }
 
     public String getPartitaIVA() {
-        return partitaIVA;
+        return this.partitaIVA;
     }
 
     public Cliente partitaIVA(String partitaIVA) {
-        this.partitaIVA = partitaIVA;
+        this.setPartitaIVA(partitaIVA);
         return this;
     }
 
@@ -84,31 +89,31 @@ public class Cliente implements Serializable {
         this.partitaIVA = partitaIVA;
     }
 
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof Cliente)) {
             return false;
         }
-        Cliente cliente = (Cliente) o;
-        if (cliente.getId() == null || getId() == null) {
-            return false;
-        }
-        return Objects.equals(getId(), cliente.getId());
+        return id != null && id.equals(((Cliente) o).id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        return getClass().hashCode();
     }
 
+    // prettier-ignore
     @Override
     public String toString() {
         return "Cliente{" +
             "id=" + getId() +
-            ", codCliente='" + getCodCliente() + "'" +
+            ", codCliente=" + getCodCliente() +
             ", ragioneSociale='" + getRagioneSociale() + "'" +
             ", partitaIVA='" + getPartitaIVA() + "'" +
             "}";

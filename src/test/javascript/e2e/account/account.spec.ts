@@ -1,108 +1,123 @@
-import { browser, element, by } from 'protractor';
+import { browser, element, by, ExpectedConditions as ec } from 'protractor';
+
+import { NavBarPage, SignInPage, PasswordPage, SettingsPage } from '../page-objects/jhi-page-objects';
+
+const expect = chai.expect;
 
 describe('account', () => {
+  let navBarPage: NavBarPage;
+  let signInPage: SignInPage;
+  const username = process.env.E2E_USERNAME ?? 'admin';
+  const password = process.env.E2E_PASSWORD ?? 'admin';
+  let passwordPage: PasswordPage;
+  let settingsPage: SettingsPage;
 
-    const username = element(by.id('username'));
-    const password = element(by.id('password'));
-    const accountMenu = element(by.id('account-menu'));
-    const login = element(by.id('login'));
-    const logout = element(by.id('logout'));
+  before(async () => {
+    await browser.get('/');
+    navBarPage = new NavBarPage(true);
+  });
 
-    beforeAll(() => {
-        browser.get('/');
-    });
+  it('should fail to login with bad password', async () => {
+    const expect1 = 'home.title';
+    const value1 = await element(by.css('h1 > span')).getAttribute('jhiTranslate');
+    expect(value1).to.eq(expect1);
+    signInPage = await navBarPage.getSignInPage();
+    await signInPage.autoSignInUsing(username, 'foo');
 
-    it('should fail to login with bad password', () => {
-        const expect1 = /home.title/;
-        element.all(by.css('h1')).first().getAttribute('jhiTranslate').then((value) => {
-            expect(value).toMatch(expect1);
-        });
-        accountMenu.click();
-        login.click();
+    const expect2 = 'login.messages.error.authentication';
+    const value2 = await element(by.css('.alert-danger')).getAttribute('jhiTranslate');
+    expect(value2).to.eq(expect2);
+  });
 
-        username.sendKeys('admin');
-        password.sendKeys('foo');
-        element(by.css('button[type=submit]')).click();
+  it('should login successfully with admin account', async () => {
+    await browser.get('/');
+    signInPage = await navBarPage.getSignInPage();
 
-        const expect2 = /login.messages.error.authentication/;
-        element.all(by.css('.alert-danger')).first().getAttribute('jhiTranslate').then((value) => {
-            expect(value).toMatch(expect2);
-        });
-    });
+    const expect1 = 'global.form.username.label';
+    const value1 = await element(by.className('username-label')).getAttribute('jhiTranslate');
+    expect(value1).to.eq(expect1);
+    await signInPage.autoSignInUsing(username, password);
 
-    it('should login successfully with admin account', () => {
-        const expect1 = /global.form.username/;
-        element.all(by.css('.modal-content label')).first().getAttribute('jhiTranslate').then((value) => {
-            expect(value).toMatch(expect1);
-        });
-        username.clear();
-        username.sendKeys('admin');
-        password.clear();
-        password.sendKeys('admin');
-        element(by.css('button[type=submit]')).click();
+    const expect2 = 'home.logged.message';
+    await browser.wait(ec.visibilityOf(element(by.id('home-logged-message'))));
+    const value2 = await element(by.id('home-logged-message')).getAttribute('jhiTranslate');
+    expect(value2).to.eq(expect2);
+  });
 
-        browser.waitForAngular();
+  it('should be able to update settings', async () => {
+    settingsPage = await navBarPage.getSettingsPage();
 
-        const expect2 = /home.logged.message/;
-        element.all(by.css('.alert-success span')).getAttribute('jhiTranslate').then((value) => {
-            expect(value).toMatch(expect2);
-        });
-    });
+    const expect1 = 'settings.title';
+    const value1 = await settingsPage.getTitle();
+    expect(value1).to.eq(expect1);
+    await settingsPage.save();
 
-    it('should be able to update settings', () => {
-        accountMenu.click();
-        element(by.css('[routerLink="settings"]')).click();
+    const expect2 = 'settings.messages.success';
+    const alert = element(by.css('.alert-success'));
+    const value2 = await alert.getAttribute('jhiTranslate');
+    expect(value2).to.eq(expect2);
+  });
 
-        const expect1 = /settings.title/;
-        element.all(by.css('h2')).first().getAttribute('jhiTranslate').then((value) => {
-            expect(value).toMatch(expect1);
-        });
-        element(by.css('button[type=submit]')).click();
+  it('should fail to update password when using incorrect current password', async () => {
+    passwordPage = await navBarPage.getPasswordPage();
 
-        const expect2 = /settings.messages.success/;
-        element.all(by.css('.alert-success')).first().getAttribute('jhiTranslate').then((value) => {
-            expect(value).toMatch(expect2);
-        });
-    });
+    expect(await passwordPage.getTitle()).to.eq('password.title');
 
-    it('should be able to update password', () => {
-        accountMenu.click();
-        element(by.css('[routerLink="password"]')).click();
+    await passwordPage.setCurrentPassword('wrong_current_password');
+    await passwordPage.setPassword('new_password');
+    await passwordPage.setConfirmPassword('new_password');
+    await passwordPage.save();
 
-        const expect1 = /password.title/;
-        element.all(by.css('h2')).first().getAttribute('jhiTranslate').then((value) => {
-            expect(value).toMatch(expect1);
-        });
-        password.sendKeys('newpassword');
-        element(by.id('confirmPassword')).sendKeys('newpassword');
-        element(by.css('button[type=submit]')).click();
+    const expect2 = 'password.messages.error';
+    const alert = element(by.css('.alert-danger'));
+    const value2 = await alert.getAttribute('jhiTranslate');
+    expect(value2).to.eq(expect2);
+    settingsPage = await navBarPage.getSettingsPage();
+  });
 
-        const expect2 = /password.messages.success/;
-        element.all(by.css('.alert-success')).first().getAttribute('jhiTranslate').then((value) => {
-            expect(value).toMatch(expect2);
-        });
-        accountMenu.click();
-        logout.click();
+  it('should be able to update password', async () => {
+    passwordPage = await navBarPage.getPasswordPage();
 
-        accountMenu.click();
-        login.click();
+    expect(await passwordPage.getTitle()).to.eq('password.title');
 
-        username.sendKeys('admin');
-        password.sendKeys('newpassword');
-        element(by.css('button[type=submit]')).click();
+    await passwordPage.setCurrentPassword(password);
+    await passwordPage.setPassword('newpassword');
+    await passwordPage.setConfirmPassword('newpassword');
+    await passwordPage.save();
 
-        accountMenu.click();
-        element(by.css('[routerLink="password"]')).click();
-        // change back to default
-        password.clear();
-        password.sendKeys('admin');
-        element(by.id('confirmPassword')).clear();
-        element(by.id('confirmPassword')).sendKeys('admin');
-        element(by.css('button[type=submit]')).click();
-    });
+    const successMsg = 'password.messages.success';
+    const alert = element(by.css('.alert-success'));
+    const alertValue = await alert.getAttribute('jhiTranslate');
+    expect(alertValue).to.eq(successMsg);
+    await navBarPage.autoSignOut();
+    await navBarPage.goToSignInPage();
+    await signInPage.autoSignInUsing(username, 'newpassword');
 
-    afterAll(() => {
-        accountMenu.click();
-        logout.click();
-    });
+    // change back to default
+    await navBarPage.goToPasswordMenu();
+    await passwordPage.setCurrentPassword('newpassword');
+    await passwordPage.setPassword(password);
+    await passwordPage.setConfirmPassword(password);
+    await passwordPage.save();
+
+    // wait for success message
+    const alertValue2 = await alert.getAttribute('jhiTranslate');
+    expect(alertValue2).to.eq(successMsg);
+  });
+
+  it('should navigate to 404 not found error page on non existing route and show user own navbar if valid authentication exists', async () => {
+    // don't sign out and refresh page with non existing route
+    await browser.get('/this-is-link-to-non-existing-page');
+
+    // should navigate to 404 not found page
+    const url = await browser.getCurrentUrl();
+    expect(url).to.endWith('404');
+
+    // as user is admin then should show admin menu to user
+    await navBarPage.clickOnAdminMenu();
+  });
+
+  after(async () => {
+    await navBarPage.autoSignOut();
+  });
 });

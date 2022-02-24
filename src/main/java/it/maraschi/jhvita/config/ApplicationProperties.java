@@ -3,11 +3,10 @@ package it.maraschi.jhvita.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Properties specific to JHipster.
+ * Properties specific to Jhvita.
  * <p>
- * Properties are configured in the application.yml file.
+ * Properties are configured in the {@code application.yml} file.
+ * See {@link tech.jhipster.config.JHipsterProperties} for a good example.
  */
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
-public class ApplicationProperties {
-
-}
+public class ApplicationProperties {}
