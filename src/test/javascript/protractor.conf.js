@@ -1,49 +1,56 @@
-const HtmlScreenshotReporter = require("protractor-jasmine2-screenshot-reporter");
-const JasmineReporters = require('jasmine-reporters');
-
 exports.config = {
-    allScriptsTimeout: 20000,
+  allScriptsTimeout: 20000,
 
-    specs: [
-        './e2e/account/*.spec.ts',
-        './e2e/admin/*.spec.ts',
-        './e2e/entities/*.spec.ts',
-        /* jhipster-needle-add-protractor-tests - JHipster will add protractors tests here */
-    ],
+  specs: [
+    './e2e/account/**/*.spec.ts',
+    './e2e/admin/**/*.spec.ts',
+    './e2e/entities/**/*.spec.ts',
+    /* jhipster-needle-add-protractor-tests - JHipster will add protractors tests here */
+  ],
 
-    capabilities: {
-        'browserName': 'chrome',
-        'phantomjs.binary.path': require('phantomjs-prebuilt').path,
-        'phantomjs.ghostdriver.cli.args': ['--loglevel=DEBUG']
+  capabilities: {
+    browserName: 'chrome',
+    chromeOptions: {
+      args: process.env.JHI_E2E_HEADLESS
+        ? ['--headless', '--disable-gpu', '--window-size=800,600']
+        : ['--disable-gpu', '--window-size=800,600'],
     },
+  },
 
-    directConnect: true,
+  directConnect: true,
 
-    baseUrl: 'http://localhost:8080/',
+  baseUrl: 'http://localhost:8080/',
 
-    framework: 'jasmine2',
+  framework: 'mocha',
 
-    jasmineNodeOpts: {
-        showColors: true,
-        defaultTimeoutInterval: 60000
-    },
+  SELENIUM_PROMISE_MANAGER: false,
 
-    beforeLaunch: function() {
-        require('ts-node').register({
-            project: ''
-        });
-    },
+  mochaOpts: {
+    reporter: 'spec',
+    slow: 3000,
+    ui: 'bdd',
+    timeout: 720000,
+  },
 
-    onPrepare: function() {
-        browser.driver.manage().window().setSize(1280, 1024);
-        jasmine.getEnv().addReporter(new JasmineReporters.JUnitXmlReporter({
-            savePath: 'target/reports/e2e',
-            consolidateAll: false
-        }));
-        jasmine.getEnv().addReporter(new HtmlScreenshotReporter({
-            dest: "target/reports/e2e/screenshots"
-        }));
-    },
+  beforeLaunch: function () {
+    require('ts-node').register({
+      project: 'tsconfig.e2e.json',
+    });
+  },
 
-    useAllAngular2AppRoots: true
+  onPrepare: function () {
+    browser.driver.manage().window().setSize(1280, 1024);
+    // Disable animations
+    // @ts-ignore
+    browser.executeScript('document.body.className += " notransition";');
+    const chai = require('chai');
+    const chaiAsPromised = require('chai-as-promised');
+    chai.use(chaiAsPromised);
+    const chaiString = require('chai-string');
+    chai.use(chaiString);
+    // @ts-ignore
+    global.chai = chai;
+  },
+
+  useAllAngular2AppRoots: true,
 };

@@ -1,58 +1,67 @@
 package it.maraschi.jhvita.security.jwt;
 
-import it.maraschi.jhvita.security.AuthoritiesConstants;
-import io.github.jhipster.config.JHipsterProperties;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import it.maraschi.jhvita.management.SecurityMetersService;
+import it.maraschi.jhvita.security.AuthoritiesConstants;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.util.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.util.ReflectionTestUtils;
+import tech.jhipster.config.JHipsterProperties;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
+class TokenProviderTest {
 
-import static org.assertj.core.api.Assertions.assertThat;
+    private static final long ONE_MINUTE = 60000;
 
-public class TokenProviderTest {
-
-    private final String secretKey = "e5c9ee274ae87bc031adda32e27fa98b9290da83";
-    private final long ONE_MINUTE = 60000;
-    private JHipsterProperties jHipsterProperties;
+    private Key key;
     private TokenProvider tokenProvider;
 
-    @Before
+    @BeforeEach
     public void setup() {
-        jHipsterProperties = Mockito.mock(JHipsterProperties.class);
-        tokenProvider = new TokenProvider(jHipsterProperties);
-        ReflectionTestUtils.setField(tokenProvider, "secretKey", secretKey);
+        JHipsterProperties jHipsterProperties = new JHipsterProperties();
+        String base64Secret = "fd54a45s65fds737b9aafcb3412e07ed99b267f33413274720ddbb7f6c5e64e9f14075f2d7ed041592f0b7657baf8";
+        jHipsterProperties.getSecurity().getAuthentication().getJwt().setBase64Secret(base64Secret);
+
+        SecurityMetersService securityMetersService = new SecurityMetersService(new SimpleMeterRegistry());
+
+        tokenProvider = new TokenProvider(jHipsterProperties, securityMetersService);
+        key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(base64Secret));
+
+        ReflectionTestUtils.setField(tokenProvider, "key", key);
         ReflectionTestUtils.setField(tokenProvider, "tokenValidityInMilliseconds", ONE_MINUTE);
     }
 
     @Test
-    public void testReturnFalseWhenJWThasInvalidSignature() {
+    void testReturnFalseWhenJWThasInvalidSignature() {
         boolean isTokenValid = tokenProvider.validateToken(createTokenWithDifferentSignature());
 
-        assertThat(isTokenValid).isEqualTo(false);
+        assertThat(isTokenValid).isFalse();
     }
 
     @Test
-    public void testReturnFalseWhenJWTisMalformed() {
+    void testReturnFalseWhenJWTisMalformed() {
         Authentication authentication = createAuthentication();
         String token = tokenProvider.createToken(authentication, false);
         String invalidToken = token.substring(1);
         boolean isTokenValid = tokenProvider.validateToken(invalidToken);
 
-        assertThat(isTokenValid).isEqualTo(false);
+        assertThat(isTokenValid).isFalse();
     }
 
     @Test
-    public void testReturnFalseWhenJWTisExpired() {
+    void testReturnFalseWhenJWTisExpired() {
         ReflectionTestUtils.setField(tokenProvider, "tokenValidityInMilliseconds", -ONE_MINUTE);
 
         Authentication authentication = createAuthentication();
@@ -60,23 +69,51 @@ public class TokenProviderTest {
 
         boolean isTokenValid = tokenProvider.validateToken(token);
 
-        assertThat(isTokenValid).isEqualTo(false);
+        assertThat(isTokenValid).isFalse();
     }
 
     @Test
-    public void testReturnFalseWhenJWTisUnsupported() {
+    void testReturnFalseWhenJWTisUnsupported() {
         String unsupportedToken = createUnsupportedToken();
 
         boolean isTokenValid = tokenProvider.validateToken(unsupportedToken);
 
-        assertThat(isTokenValid).isEqualTo(false);
+        assertThat(isTokenValid).isFalse();
     }
 
     @Test
-    public void testReturnFalseWhenJWTisInvalid() {
+    void testReturnFalseWhenJWTisInvalid() {
         boolean isTokenValid = tokenProvider.validateToken("");
 
-        assertThat(isTokenValid).isEqualTo(false);
+        assertThat(isTokenValid).isFalse();
+    }
+
+    @Test
+    void testKeyIsSetFromSecretWhenSecretIsNotEmpty() {
+        final String secret = "NwskoUmKHZtzGRKJKVjsJF7BtQMMxNWi";
+        JHipsterProperties jHipsterProperties = new JHipsterProperties();
+        jHipsterProperties.getSecurity().getAuthentication().getJwt().setSecret(secret);
+
+        SecurityMetersService securityMetersService = new SecurityMetersService(new SimpleMeterRegistry());
+
+        TokenProvider tokenProvider = new TokenProvider(jHipsterProperties, securityMetersService);
+
+        Key key = (Key) ReflectionTestUtils.getField(tokenProvider, "key");
+        assertThat(key).isNotNull().isEqualTo(Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    void testKeyIsSetFromBase64SecretWhenSecretIsEmpty() {
+        final String base64Secret = "fd54a45s65fds737b9aafcb3412e07ed99b267f33413274720ddbb7f6c5e64e9f14075f2d7ed041592f0b7657baf8";
+        JHipsterProperties jHipsterProperties = new JHipsterProperties();
+        jHipsterProperties.getSecurity().getAuthentication().getJwt().setBase64Secret(base64Secret);
+
+        SecurityMetersService securityMetersService = new SecurityMetersService(new SimpleMeterRegistry());
+
+        TokenProvider tokenProvider = new TokenProvider(jHipsterProperties, securityMetersService);
+
+        Key key = (Key) ReflectionTestUtils.getField(tokenProvider, "key");
+        assertThat(key).isNotNull().isEqualTo(Keys.hmacShaKeyFor(Decoders.BASE64.decode(base64Secret)));
     }
 
     private Authentication createAuthentication() {
@@ -86,16 +123,18 @@ public class TokenProviderTest {
     }
 
     private String createUnsupportedToken() {
-        return Jwts.builder()
-            .setPayload("payload")
-            .signWith(SignatureAlgorithm.HS512, secretKey)
-            .compact();
+        return Jwts.builder().setPayload("payload").signWith(key, SignatureAlgorithm.HS512).compact();
     }
 
     private String createTokenWithDifferentSignature() {
-        return Jwts.builder()
+        Key otherKey = Keys.hmacShaKeyFor(
+            Decoders.BASE64.decode("Xfd54a45s65fds737b9aafcb3412e07ed99b267f33413274720ddbb7f6c5e64e9f14075f2d7ed041592f0b7657baf8")
+        );
+
+        return Jwts
+            .builder()
             .setSubject("anonymous")
-            .signWith(SignatureAlgorithm.HS512, "e5c9ee274ae87bc031adda32e27fa98b9290da90")
+            .signWith(otherKey, SignatureAlgorithm.HS512)
             .setExpiration(new Date(new Date().getTime() + ONE_MINUTE))
             .compact();
     }

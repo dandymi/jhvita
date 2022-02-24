@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
-import { Http } from '@angular/http';
-import { Observable } from 'rxjs/Rx';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
-@Injectable()
-export class Register {
+import { ApplicationConfigService } from 'app/core/config/application-config.service';
+import { Registration } from './register.model';
 
-    constructor(private http: Http) {}
+@Injectable({ providedIn: 'root' })
+export class RegisterService {
+  constructor(private http: HttpClient, private applicationConfigService: ApplicationConfigService) {}
 
-    save(account: any): Observable<any> {
-        return this.http.post('api/register', account);
-    }
+  save(registration: Registration): Observable<{}> {
+    return this.http.post(this.applicationConfigService.getEndpointFor('api/register'), registration);
+  }
 }
