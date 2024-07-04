@@ -169,7 +169,6 @@
     "reportPath": "target/test-results/jest",
     "reportFile": "TESTS-results-sonar.xml"
   },
-<<<<<<< HEAD
   "devDependencies": {
     "@angular/cli": "1.2.0",
     "@angular/compiler-cli": "4.2.6",
@@ -251,9 +250,5 @@
     "test:watch": "yarn test -- --watch",
     "e2e": "protractor src/test/javascript/protractor.conf.js",
     "postinstall": "webdriver-manager update && node node_modules/phantomjs-prebuilt/install.js"
-=======
-  "overrides": {
-    "webpack": "5.66.0"
->>>>>>> jhipster_upgrade
   }
 }
